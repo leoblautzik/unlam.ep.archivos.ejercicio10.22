@@ -18,13 +18,150 @@ typedef struct
 typedef struct 
 {
     char codModif;
-    Censo censo;
+    char codProv[4];
+    int nacion;
+    int cantHab;
 }ModifCenso;
 
+void llenarProvincias(Provincia p[]);
 
 int main(int argc, char *argv[])
 {
     Provincia provincias[24];
+    llenarProvincias(provincias);
+        FILE *fprov;
+    if ((fprov = fopen("./provincias.dat","wb"))==NULL) {
+        printf("No se pudo crear el archivo provincias.dat");
+        getchar();
+        exit(1);
+    }
+    
+    for (int i = 0; i < 24; i++) {
+        fwrite(&provincias[i],sizeof(Provincia),1,fprov);    
+    }
+    
+    fclose(fprov);
+
+    FILE *fcenso;
+    if ((fcenso = fopen("./censo.dat","wb"))==NULL) {
+        printf("No se pudo crear el archivo censo.dat");
+        getchar();
+        exit(1);
+    }
+    
+    Censo auxC;
+    strcpy(auxC.codProv,"BUE");
+    auxC.nacion=8;
+    auxC.cantHab=76;
+    fwrite(&auxC,sizeof(Censo),1,fcenso);    
+
+    strcpy(auxC.codProv,"CAB");
+    auxC.nacion=7;
+    auxC.cantHab=50;
+    fwrite(&auxC,sizeof(Censo),1,fcenso);    
+    
+    strcpy(auxC.codProv,"CAT");
+    auxC.nacion=3;
+    auxC.cantHab=4;
+    fwrite(&auxC,sizeof(Censo),1,fcenso);       
+    
+    strcpy(auxC.codProv,"BUE");
+    auxC.nacion=5;
+    auxC.cantHab=56;
+    fwrite(&auxC,sizeof(Censo),1,fcenso); 
+    
+    fclose(fcenso);
+
+    FILE *fModifCenso;
+    if ((fModifCenso = fopen("./modif_censo.dat","wb"))==NULL) {
+        printf("No se pudo crear el archivo modif_censo.dat");
+        getchar();
+        exit(1);
+    }
+    
+    ModifCenso auxCm;
+    strcpy(auxCm.codProv,"BUE");
+    auxCm.codModif='M';
+    auxCm.nacion=8;
+    auxCm.cantHab=80;
+    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso);    
+
+    strcpy(auxCm.codProv,"CAB");
+    auxCm.codModif='A';
+    auxCm.nacion=7;
+    auxCm.cantHab=5;
+    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso);    
+    
+    strcpy(auxCm.codProv,"CAT");
+    auxCm.codModif='A';
+    auxCm.nacion=3;
+    auxCm.cantHab=5;
+    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso);       
+    
+    strcpy(auxCm.codProv,"CHA");
+    auxCm.codModif='M';
+    auxCm.nacion=15;
+    auxCm.cantHab=9;
+
+    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso); 
+    
+    strcpy(auxCm.codProv,"BUE");
+    auxCm.codModif='A';
+    auxCm.nacion=8;
+    auxCm.cantHab=9;
+    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso); 
+    
+    fclose(fModifCenso);
+
+
+//Mostrar provincia----------------------------------------
+    if ((fprov = fopen("./provincias.dat","rb"))==NULL) {
+        printf("No se pudo abrir provincias.dat");
+        getchar();
+        exit(1);
+    }
+    for (int i = 0; i < 24; i++) {
+        printf("Provincia[%d]: %s\t%s\n",i,provincias[i].codProv,provincias[i].nomProv); 
+
+    }
+    fclose(fprov);
+//Mostrar censo---------------------------------------------    
+    if ((fcenso = fopen("./censo.dat","rb"))==NULL) {
+        printf("No se pudo abrir censo.dat");
+        getchar();
+        exit(1);
+    }
+    Censo censoAux;
+    
+
+    fread(&censoAux,sizeof(Censo),1,fcenso);
+    while(!feof(fcenso)){
+        printf("%s\t%d\t%d\n",censoAux.codProv,censoAux.nacion,censoAux.cantHab);
+        fread(&censoAux,sizeof(Censo),1,fcenso);
+    }
+    fclose(fcenso);
+//Mostrar modificaciones---------------------------------
+    //FILE *fModifCenso;
+    if((fModifCenso = fopen("modif_censo.dat","rb"))==NULL){
+        printf("No se pudo abrir modif_censo.dat");
+        printf("ERROR");
+        getchar();
+        exit(1);
+    } 
+    ModifCenso MCaux;
+    
+    fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
+    while(!feof(fModifCenso)){
+         
+        printf("%c\t%s\t%d\t%d\n",MCaux.codModif, MCaux.codProv,MCaux.nacion,MCaux.cantHab);
+        fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
+    }
+    fclose(fModifCenso);
+
+    return 0;
+}
+
+void llenarProvincias(Provincia provincias[]){
     Provincia aux;
     strcpy(provincias[0].nomProv,"Buenos Aires");
     strcpy(provincias[0].codProv,"BUE");
@@ -97,23 +234,12 @@ int main(int argc, char *argv[])
     strcpy(aux.codProv,"TUC");
     strcpy(aux.nomProv,"Tucuman");
     provincias[23]=aux; 
-
-    FILE *fprov;
-    if ((fprov = fopen("./provincias.dat","wb"))==NULL) {
-        printf("No se pudo crear el archivo");
-        getchar();
-        exit(1);
-    }
-    
-    for (int i = 0; i < 24; i++) {
-        fwrite(&provincias[i],sizeof(Provincia),1,fprov);    
-    }
-    
-    fclose(fprov);
-            
-   
-    return 0;
 }
+
+
+
+
+
 
 
 /*BUE	Buenos Aires
