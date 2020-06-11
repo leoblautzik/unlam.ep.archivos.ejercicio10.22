@@ -95,13 +95,13 @@ int main(int argc, char *argv[])
     strcpy(auxCm.codProv,"CAT");
     auxCm.codModif='A';
     auxCm.nacion=3;
-    auxCm.cantHab=105;
+    auxCm.cantHab=5;
     fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso);       
     
     strcpy(auxCm.codProv,"CHA");
     auxCm.codModif='M';
     auxCm.nacion=15;
-    auxCm.cantHab=29;
+    auxCm.cantHab=9;
 
     fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso); 
     
@@ -109,12 +109,6 @@ int main(int argc, char *argv[])
     auxCm.codModif='A';
     auxCm.nacion=8;
     auxCm.cantHab=9;
-    fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso); 
-
-    strcpy(auxCm.codProv,"TUC");
-    auxCm.codModif='A';
-    auxCm.nacion=3;
-    auxCm.cantHab=209;
     fwrite(&auxCm,sizeof(ModifCenso),1,fModifCenso); 
     
     fclose(fModifCenso);
@@ -126,7 +120,6 @@ int main(int argc, char *argv[])
         getchar();
         exit(1);
     }
-    printf("Provincias ------------------------------------\n");
     for (int i = 0; i < 24; i++) {
         printf("Provincia[%d]: %s\t%s\n",i,provincias[i].codProv,provincias[i].nomProv); 
 
@@ -140,7 +133,6 @@ int main(int argc, char *argv[])
     }
     Censo censoAux;
     
-    printf("Censo ---------------------------------------\n");
 
     fread(&censoAux,sizeof(Censo),1,fcenso);
     while(!feof(fcenso)){
@@ -156,7 +148,7 @@ int main(int argc, char *argv[])
         exit(1);
     } 
     ModifCenso MCaux;
-    printf("Modificaciones --------------------------------\n");
+    
     fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
     while(!feof(fModifCenso)){
          

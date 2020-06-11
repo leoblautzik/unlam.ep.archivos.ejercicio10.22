@@ -61,9 +61,15 @@ typedef struct
     int total;
 }Total;
 
+
+void leerModifCenso(FILE *fModifCenso,int matDatos[][50],Provincia provincias[]);
+void leerCenso(FILE *fcenso,Provincia provincias[],int matDatos[][50]);
+void leerProvincias(FILE *fprov, Provincia provincias[],int);
 int buscar(Provincia [], char[], int);
 void totalizar(Total [],int[][50]);
-
+void ordenar(Total t[],int cant);
+void actualizarCenso(FILE *fcenso, Provincia p[], int matDatos[][50],int f,int c);
+void mostrar(Total t[], Provincia [], int cant);
 
 int main(int argc, char *argv[])
 {
@@ -76,58 +82,42 @@ int main(int argc, char *argv[])
             matDatos[i][j]=0;
 
     FILE *fprov;
-    if ((fprov = fopen("provincias.dat","rb"))==NULL) {
-        printf("ERROR");
-        getchar();
-        exit(1);
-    }
- 
     FILE *fcenso;
-    if((fcenso = fopen("censo.dat","rb"))==NULL){
-        printf("ERROR");
-        getchar();
-        exit(1);
-    } 
- 
     FILE *fModifCenso;
-    if((fModifCenso = fopen("modif_censo.dat","rb"))==NULL){
-        printf("ERROR");
+    leerProvincias(fprov,provincias,24);
+    leerCenso(fcenso,provincias,matDatos);
+    leerModifCenso(fModifCenso,matDatos,provincias);
+    totalizar(totales,matDatos);
+    ordenar(totales,24);
+    mostrar(totales,provincias,24);
+
+    actualizarCenso(fcenso,provincias,matDatos,24,50); 
+
+    return 0;
+}
+
+void actualizarCenso(FILE *fcenso, Provincia p[],int matDatos[][50],int f,int c)
+{
+    if((fcenso = fopen("./censo.dat","wb"))==NULL){
+        printf("ERROR al abrir censo.dat");
         getchar();
         exit(1);
     } 
-   
-    for (int i = 0; i < 24; i++) {
-        fread(&provincias[i],sizeof(Provincia),1,fprov);
-    }
-    fclose(fprov);
-     
-    int fila=0;
-    Censo censoAux;
-    while(!feof(fcenso)){
-        fread(&censoAux,sizeof(Censo),1,fcenso);
-        fila=buscar(provincias,censoAux.codProv,24);
-        matDatos[fila][censoAux.nacion-1]=censoAux.cantHab;
+    Censo auxC;
+    for(int i=0;i<f;i++)
+    {
+      for(int j=0;j<c;j++)
+      {
+        if(matDatos[i][j]!=0)
+        {
+            strcpy(auxC.codProv,p[i].codProv);
+            auxC.cantHab=matDatos[i][j];
+            auxC.nacion=j+1;
+            fwrite(&auxC,sizeof(Censo),1,fcenso);
+        }
+      }
     }
     fclose(fcenso);
-
-    ModifCenso MCaux;
-    while(!feof(fModifCenso)){
-        fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
-        fila=buscar(provincias,MCaux.codProv,24);
-        if(MCaux.codModif=='A')
-            matDatos[fila][censoAux.nacion-1]+=censoAux.cantHab;
-        else
-            matDatos[fila][censoAux.nacion-1]=censoAux.cantHab;
-             
-    }
-    fclose(fModifCenso);
-    
-    for (int i = 0; i < 24; i++) {
-        printf("Provincia[%d]: %s\t%s\n",i,provincias[i].codProv,provincias[i].nomProv); 
-
-    }
-   
-    return 0;
 }
 
 int buscar(Provincia p [],char cp[],int tam){
@@ -137,17 +127,107 @@ int buscar(Provincia p [],char cp[],int tam){
             encontrado=i;
         i++;
     }
+    //printf("%d\n",encontrado); 
     return encontrado;
 }
 
-void totalizar(Total t[],int m[24][50]){
-    
+void totalizar(Total t[24],int m[24][50]){
+    int auxTotal=0;
     for (int i=0;i<24;i++){
-        int auxTotal=0;
+        auxTotal=0;
         for(int j=0;j<50;j++)
             auxTotal+=m[i][j];
         t[i].fila=i;
         t[i].total=auxTotal;
+        //if(t[i].total!=0)
+        //printf("%d\t%d\n",t[i].fila,t[i].total);
+    }
+}
+void ordenar(Total t[],int cant)
+{
+    int i,j;
+	Total aux;
+	for (i=0;i<cant-1;i++)
+	{
+		for (j=0;j<cant-1-i;j++)
+		{
+			if (t[j].total <t[j+1].total)
+			{
+				aux= t[j];
+				t[j]=t[j+1];
+				t[j+1]=aux;
+			}
+		}
     }
 
 }
+
+void mostrar(Total t[], Provincia p[], int cant)
+{
+
+    printf("Provincia\tTotal Extranjeros\n");   
+    for(int i=0;i<cant;i++)
+     if(t[i].total!=0)
+      printf("%s\t\t\t%d\n",p[t[i].fila].nomProv,t[i].total);   
+}
+
+
+void leerCenso(FILE *fcenso,Provincia provincias[],int matDatos[][50])
+{
+    if((fcenso = fopen("./censo.dat","rb"))==NULL){
+        printf("ERROR");
+        getchar();
+        exit(1);
+    } 
+    int fila=0;
+    Censo censoAux;
+    fread(&censoAux,sizeof(Censo),1,fcenso);
+    while(!feof(fcenso)){
+    	//printf("%s\t%d\t%d\n",censoAux.codProv,censoAux.nacion,censoAux.cantHab);
+        fila=buscar(provincias,censoAux.codProv,24);
+        matDatos[fila][censoAux.nacion-1]=censoAux.cantHab;
+        fread(&censoAux,sizeof(Censo),1,fcenso);
+    }
+    fclose(fcenso);
+
+}
+
+
+void leerProvincias(FILE *fprov, Provincia provincias[],int cant)
+{
+    if ((fprov = fopen("./provincias.dat","rb"))==NULL) {
+        printf("ERROR al abrir provincias.dat");
+        getchar();
+        exit(1);
+    }
+ 
+     for (int i = 0; i < cant; i++) {
+        fread(&provincias[i],sizeof(Provincia),1,fprov);
+    }
+    fclose(fprov);
+}
+
+void leerModifCenso(FILE *fModifCenso,int matDatos[][50],Provincia provincias[])
+{
+    if((fModifCenso = fopen("./modif_censo.dat","rb"))==NULL){
+        printf("ERROR");
+        getchar();
+        exit(1);
+    } 
+   
+    
+    ModifCenso MCaux;
+    int fila; 
+    fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
+    while(!feof(fModifCenso)){
+        fila=buscar(provincias,MCaux.codProv,24);
+        if(MCaux.codModif=='A')
+            matDatos[fila][MCaux.nacion-1]+=MCaux.cantHab;
+        else
+            matDatos[fila][MCaux.nacion-1]=MCaux.cantHab;
+             
+        fread(&MCaux,sizeof(ModifCenso),1,fModifCenso);
+    }
+    fclose(fModifCenso);
+}
+
